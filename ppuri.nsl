@@ -84,10 +84,26 @@ if(reg_rw==1){
 		if((ntsa_1==0)&&(ntsa_0==1)){ntsa_reg :=1;}
 		if((ntsa_1==1)&&(ntsa_0==0)){ntsa_reg :=2;}
 		if((ntsa_1==1)&&(ntsa_0==1)){ntsa_reg :=3;}
-
+	}
 	if(reg_sel=3'h1){
-		}
-	if(cpu_mem=3'h2){
+		ce_3 :=data[7];
+		ce_2 :=data[6];
+		ce_1 :=data[5];
+		spr_v :=data[4];
+		bg_v :=data[3];
+		spr_c :=data[2];
+		bg_c :=data[1];
+
+		if(ce_3==0)&&(ce_2==0)&&(ce_1==0){r :=0;g :=0;b :=0;}
+		if(ce_3==0)&&(ce_2==0)&&(ce_1==1){r :=0;g :=0;b :=8;}
+		if(ce_3==0)&&(ce_2==1)&&(ce_1==0){r :=0;g :=8;b :=0;}
+		if(ce_3==1)&&(ce_2==0)&&(ce_1==0){r :=8;g :=0;b :=0;}
+		if(spr_v==0){spr_en :=0;}else{spr_en :=1;}
+		if(bg_v==0){bg_en :=0;}else{bg_en :=1;}
+		if(spr_c==0){spr_l :=0;}else{spr_l :=1;}
+		if(bg_c==0){bg_l :=0;}else{bg_l :=1;}
+	}
+	if(cpu_mem=3'h3){
 		if(rw==1){
 			port2002 :=data;
 		}else{
