@@ -1,0 +1,101 @@
+//PPU rigster
+//start 2012/12/06/
+//ka
+declare vga{
+		input data[8];
+		input reg_rw;//0=r,1=w;
+		input reg_sel[3];//for the address registers from 2000 to 2007
+		output nmi;
+		output spr_h;
+		output pt_reg;
+		output inm[6];
+		output ntsa_reg[2];
+}
+module vga{
+//i/o reg is from cpu map for ppu,only 2002 and 2007 are for reading;
+
+//control_reg1(W)
+//2000[7]={Execute NMI on VBlank;0=disable,1=Enable}
+//2000[6]={PPU Master/Slave Selection ;0=Master,1=Slave;NOT USE HERE}
+//2000[5]={Sprite Size;0=8*8,1=8*16}
+//2000[4]={Pattern Table Address BG;0=VRAM 0000h,1=VRAM 1000h}
+//2000[3]={Pattern Table Address 8*8 Sprites;0=VRAM 0000h,1=VRAM 1000h}
+//2000[2]={Port 2007h VRAM Address increment;0=+1,1=+32}
+//2000[1-0]={Name Table Scroll Address;0=VRAM 2000h,1=VRAM 2400h,2=VRAM 2800h,3=VRAM 2C00h}
+wire nvbl_en;
+wire spr_s;
+wire pt_bg;
+wire pt_spr;
+wire incm7;
+wire ntsa_1;
+wire ntsa_0;
+	
+
+//control_reg2(W)
+//2001[7-5]={Color Emphasis;0=Normal,1-7=Emphasis;}
+//2001[4]={Sprite Visibility;0=NOT display,1=Display}
+//2001[3]={BG Visibility;0=NOT display,1=Display}
+//2001[2]={Sprite Clipping;0=Hide in left 8_pixel column,1=No clipping}
+//2001[1]={BG Clipping;0=Hide in left 8_pixel column,1=No clipping}
+//2001[0]={Monochrome Mode;0=Color,1=Monochrome}
+wire port2001[8];
+
+//status_reg(R)
+//2002[7] VBlank Flag (1=VBlank)
+//2002[6] Sprite 0 Hit (1=BG-to-sprite)
+//2002[5] Lost Sprites (0=less than 8; 1=more than 8 in scanline)
+//2002[4-0] NOT USED
+wire port2002[8];
+
+//Spirit-ram Address Register(W) 
+//2003[7-0] 8bit address in SPR-RAM (00-FF)
+wire port2003[8];
+
+//Spirit-ram Data Register(R/W)
+//2004[7-0] 8bit data written to SPR-RAM
+wire port2004[8];
+
+//BG Scrolling Offset(W2)
+wire port2005[8];
+
+//Vram Address Register(W2)
+wire port2006_h[6],port2006_v[8];
+
+//Vram R/W Data Register(R/W)
+//2007[7-0] 8bit data read/wirtten from/to Vram
+wire port2007[8];
+
+if(reg_rw==1){
+	if(reg_sel=3'h0){
+		nvbl_en :=data[7];
+		spr_s   :=data[5];
+		pt_bg   :=data[4];
+		pt_spr  :=data[3];
+		incm7	:=data[2];
+		ntsa_1	:=data[1];
+		ntsa_0	:=data[0];
+		
+		if(nvbl_en==0){nmi :=0;}else{nmi :=1;}
+		if(spr_s==0){spr_h :=8;}else{spr_h :=16;}
+		if(pt_bg==0){bg_pt_reg :=0;}else{bg_pt_reg :=1;}
+		if(pt_spr==0){spr_pt_reg :=0;}else{spr_pt_reg :=1;}
+		if(incm7==0){inm :=1;}else{inm :=32;}
+		if((ntsa_1==0)&&(ntsa_0==0)){ntsa_reg :=0;}
+		if((ntsa_1==0)&&(ntsa_0==1)){ntsa_reg :=1;}
+		if((ntsa_1==1)&&(ntsa_0==0)){ntsa_reg :=2;}
+		if((ntsa_1==1)&&(ntsa_0==1)){ntsa_reg :=3;}
+
+	if(reg_sel=3'h1){
+		}
+	if(cpu_mem=3'h2){
+		if(rw==1){
+			port2002 :=data;
+		}else{
+			data_reg=port2002;
+		}
+	if(cpu_mem=3'h3){port2003:=data}
+	if(cpu_mem=3'h4){port2004:=data}
+	if(cpu_mem=3'h5){port2005:=data}
+	if(cpu_mem=3'h6){port2006:=data}
+	if(cpu_mem=3'h7){port2007:=data}
+}

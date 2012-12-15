@@ -1,0 +1,78 @@
+declare vga{
+		output hsyncb,vsyncb;
+		output VBL;
+		
+		//input palette[6];
+		output rv[8],gv[8],bv[8];
+}
+
+//when display is 640*480（60HZ）
+#define H_PIXELS=640;
+#define H_FRONT=16;
+#define H_BACK=48;
+#define H_SYNCTIME=96;
+#define H_PERIOD= H_PIXELS + H_FRONT + H_BACK + H_SYNCTIME;
+
+#define V_LINES=480;
+#define V_FRONT=10;
+#define V_BACK=33;
+#define V_SYNCTIME=2;
+#define V_PERIOD=V_LINES + V_FRONT + V_BACK + V_SYNCTIME ;
+
+module vga{
+		reg hcount[10],vcount[10];
+		reg x[9]=0,y[9]=0,palette[6];
+		
+		hsyncb[10]=1;
+		hcount[10]=0;
+
+		vsyncb[10]=1;
+		vcount[10]=0;
+		
+		x++;
+		y++;
+		any{
+		palette==0: rv=8'hff;gv=8'hff;bv=8'hff;
+		palette==1: rv=8'hff;gv=8'h0;bv=8'h0;
+		palette==2: rv=8'h0;gv=8'hff;bv=8'h0;
+		palette==3: rv=8'h0;gv=8'h0;bv=8'hff;
+		}
+		if(x<159 &&y<119){pallette:=0;}
+		if(x>160 &&y>120){pallette:=1;}
+		//hcount,hsyncb
+		if(hcount<H_PIXELS){
+			hcount　:=hcount+1;
+		}else{
+			hcount　:=0;
+		}
+
+		if (hcount >= (H_PIXELS + H_FRONT) && hcount < (H_PIXELS + H_SYNCTIME + H_FRONT)){
+			hsyncb :=0;
+		}else{
+			hsyncb :=1;
+		}
+
+		//vcount,vsyncb
+		if(vcount<V_PIXELS){
+			vcount　:=vcount+1;
+		}else{
+			vcount　:=0;
+		}
+
+		if (vcount >= (V_LINES + V_FRONT) && vcount < (V_LINES + V_SYNCTIME + V_FRONT)){
+			vsyncb :=0;
+		}else{
+			vsyncb :=1;
+		}
+
+		//VBLank
+		if (hcount >= H_PIXELS or vcount >= V_LINES){
+			VBL <= 0;
+		 }else{ 
+		 	VBL <= 1;
+		 }
+		
+		//x,y
+		
+}
+
